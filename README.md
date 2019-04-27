@@ -35,6 +35,5 @@ might be in nearby smaller locations. A leadership role, such as the one of
 Fearless Leader, would likely require a presence in a larger city.
 
 #### The Data
-Can be downloaded
-[here](http://avida.cs.wright.edu/courses/CEG7560/VASTChallenge2009-March%2025-WITHOUTVIDEO.zip)
+The data for this project is included in this repository [./data](../master/data/)
 
