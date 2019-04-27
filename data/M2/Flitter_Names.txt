@@ -1,4 +1,4 @@
-userid  username
+userid	username
 1	@irvin
 2	@rachel
 3	@dykema
