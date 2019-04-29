@@ -15,25 +15,34 @@ import numpy as np
 import sys
 
 def main():
-    strategy = "Circular"
-    ELstrategy = "Pass Through"
+    strategy = "Community2D"
+    #ELstrategy = "Pass Through"
     #Requires vtkboost
     #strategy = "CosmicTree"
 
-    user_file   = "./data/M2/Flitter_Names.txt"
-    friend_file = "./data/M2/Links_Table.txt"
+    user_file      = "./data/M2/Flitter_Names.txt"
+    friend_file    = "./data/M2/Links_Table.txt"
+    community_file = "./data/M2/People_Cities.txt"
     colors = vtk.vtkNamedColors()
 
-    graph = vtk.vtkMutableDirectedGraph()
-    username = vtk.vtkStringArray()
-    userid   = vtk.vtkIntArray()
+    graph     = vtk.vtkMutableDirectedGraph()
+    username  = vtk.vtkStringArray()
+    userid    = vtk.vtkIntArray()
+    community = vtk.vtkStringArray()
+    #community.SetComponentName("community")
+    community.SetName("community")
+    #userid.SetComponentName("uid")
     graph.GetVertexData().SetPedigreeIds(userid)
 
     ## Read user_file and friend_file with numpy
-    names = pd.read_csv( user_file, delimiter = '\t')
-    friends = pd.read_csv( friend_file, delimiter = '\t')
+    names       = pd.read_csv( user_file, delimiter = '\t')
+    friends     = pd.read_csv( friend_file, delimiter = '\t')
+    communities = pd.read_csv( community_file, delimiter = '\t')
 
+    ## Array to store verticies for adding edges
     v = []
+
+    ## Create vertex from Flitter_names
     for i in range(0, len(names)):
         v.append(graph.AddVertex())
         username.InsertNextValue(names.username[i])
@@ -46,16 +55,33 @@ def main():
     for i in range(0, len(friends)-12):
         graph.AddEdge(v[friends.ID1[i]-1],v[friends.ID2[i]-1])
 
-    #return graph
+    for i in range(0,len(communities)):
+        community.InsertNextValue(communities.City[i])
+    graph.GetVertexData().AddArray(community)
 
+    return graph
+
+    ### VTK pipeline stuff
     graphLayoutView = vtk.vtkGraphLayoutView()
     graphLayoutView.AddRepresentationFromInput(graph)
-    graphLayoutView.SetLayoutStrategy(strategy)
-    graphLayoutView.SetEdgeLayoutStrategy(ELstrategy)
+    #graphLayoutView.SetEdgeLayoutStrategy(ELstrategy)
+    #graphLayoutView.SetLayoutStrategyToCommunity2D()
+
+
+    strategery = vtk.vtkCommunity2DLayoutStrategy()
+    strategery.SetGraph(graph)
+    strategery.SetCommunityArrayName("community")
+    graphLayoutView.SetLayoutStrategy(strategery)
+
+    graphLayoutView.GetRenderWindow().SetSize(1024,1024)
+    #theme = vtk.vtkViewTheme.CreateMellowTheme()
+    #graphLayoutView.ApplyViewTheme(theme)
+
     graphLayoutView.ResetCamera()
     graphLayoutView.Render()
 
     #graphLayoutView.GetLayoutStrategy().SetRandomSeed(0)
+
 
     graphLayoutView.GetInteractor().Start()
 
