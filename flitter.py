@@ -12,26 +12,21 @@ w114mek
 import vtk
 import pandas as pd
 import numpy as np
-import sys
 
 def main():
-    strategy = "Community2D"
-    #ELstrategy = "Pass Through"
-    #Requires vtkboost
-    #strategy = "CosmicTree"
-
     user_file      = "./data/M2/Flitter_Names.txt"
     friend_file    = "./data/M2/Links_Table.txt"
     community_file = "./data/M2/People_Cities.txt"
-    colors = vtk.vtkNamedColors()
 
     graph     = vtk.vtkMutableDirectedGraph()
     username  = vtk.vtkStringArray()
+    username.SetName("username")
+
     userid    = vtk.vtkIntArray()
+    userid.SetName("uid")
+
     community = vtk.vtkStringArray()
-    #community.SetComponentName("community")
     community.SetName("community")
-    #userid.SetComponentName("uid")
     graph.GetVertexData().SetPedigreeIds(userid)
 
     ## Read user_file and friend_file with numpy
@@ -59,30 +54,26 @@ def main():
         community.InsertNextValue(communities.City[i])
     graph.GetVertexData().AddArray(community)
 
-    return graph
+    #return graph
 
     ### VTK pipeline stuff
+
+    ## Strategy attempt 2
+    strategy = vtk.vtkAttributeClustering2DLayoutStrategy()
+    strategy.SetVertexAttribute("community")
+
+    ## Strategy Attempt 1, failed due to not finding community array...
+    #strategy = vtk.vtkCommunity2DLayoutStrategy()
+    #strategy.SetCommunityArrayName("community")
+
+
+    strategy.SetGraph(graph)
     graphLayoutView = vtk.vtkGraphLayoutView()
     graphLayoutView.AddRepresentationFromInput(graph)
-    #graphLayoutView.SetEdgeLayoutStrategy(ELstrategy)
-    #graphLayoutView.SetLayoutStrategyToCommunity2D()
-
-
-    strategery = vtk.vtkCommunity2DLayoutStrategy()
-    strategery.SetGraph(graph)
-    strategery.SetCommunityArrayName("community")
-    graphLayoutView.SetLayoutStrategy(strategery)
-
     graphLayoutView.GetRenderWindow().SetSize(1024,1024)
-    #theme = vtk.vtkViewTheme.CreateMellowTheme()
-    #graphLayoutView.ApplyViewTheme(theme)
-
+    graphLayoutView.SetLayoutStrategy(strategy)
     graphLayoutView.ResetCamera()
     graphLayoutView.Render()
-
-    #graphLayoutView.GetLayoutStrategy().SetRandomSeed(0)
-
-
     graphLayoutView.GetInteractor().Start()
 
 """
