@@ -9,8 +9,8 @@ matthewkijowski@gmail.com
 w114mek
 """
 
-import vtk
 import pandas as pd
+import vtk
 import numpy as np
 
 def main():
