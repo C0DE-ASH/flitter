@@ -18,7 +18,7 @@ import numpy as np
 ### all tables must be pandas dataframes and contain a userid column
 ### drops all members of table1 that do not meet the count criteria and
 ### returns table1
-def check(table1, table2, friends, count):
+def check(table1, table2, friends, count, op):
     ## check middlemen
     for i in table1.userid.tolist():
         followtheleader = 0
@@ -26,8 +26,18 @@ def check(table1, table2, friends, count):
         links.extend(friends[friends.ID2 == i].ID1.tolist())
         for j in links:
             followtheleader = followtheleader + table2[table2.userid == j].userid.size
-        if followtheleader != count:
-            table1 = table1.drop(i)
+        if op == "lt":
+            if followtheleader >= count: table1 = table1.drop(i)
+        elif op == "le":
+            if followtheleader > count: table1 = table1.drop(i)
+        elif op == "eq":
+            if followtheleader != count: table1 = table1.drop(i)
+        elif op == "ne":
+            if followtheleader == count: table1 = table1.drop(i)
+        if op == "gt":
+            if followtheleader <= count: table1 = table1.drop(i)
+        elif op == "ge":
+            if followtheleader < count: table1 = table1.drop(i)
     return table1
 
 def main():
@@ -54,20 +64,6 @@ def main():
     v = []
     size = []
 
-    """
-    ## Housecleaning
-    uninteresting = friends.ID2.groupby(friends.ID2.tolist()).size()[friends.ID2.groupby(friends.ID2.tolist()).size() < 10].keys()
-    for i in range(0, len(uninteresting)):
-        friends = friends.drop(friends[friends.ID1 == uninteresting[i]].index.tolist())
-        friends = friends.drop(friends[friends.ID2 == uninteresting[i]].index.tolist())
-        names = names.drop(names[names.userid == uninteresting[i]].index.tolist())
-        communities = communities.drop(communities[communities.ID == uninteresting[i]].index.tolist())
-
-    names = names.reset_index()
-    friends = friends.reset_index()
-    communities = communities.reset_index()
-    """
-
     ## Create vertex from Flitter_names
     for i in range(0, len(names)):
         v.append(allgraph.AddVertex())
@@ -89,6 +85,8 @@ def main():
     middlemen = names[(names['followers'] >= 4   ) & (names['followers'] <= 5 )]
     leaders   = names[(names['followers'] >= 150 )]
 
+    middlemen = check(middlemen,leaders,friends,1,"ge")
+
     vpot = []
     potusername  = vtk.vtkStringArray()
     potusername.SetName("username")
@@ -104,6 +102,9 @@ def main():
     potentials = potentials.drop(columns="vertex")
     potentials = potentials.reset_index()
     potentials = potentials.drop(columns="index")
+
+    ## Test return case
+    #return friends,names,potentials ,employees,handlers,middlemen,leaders
 
 
     for i in potentials.userid.tolist():

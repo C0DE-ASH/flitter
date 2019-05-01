@@ -73,6 +73,36 @@ This approach has 3 problems:
 
 Because of this reducing the data in this was was discarded.
 
+#### Reducing dataset based on problem descripton
+When all else fails, look at the instructions...
+
+Assumptions based on the instructions:
+1. Twitter links are very much one directional, meaning you can "follow" someone
+   without them needing to "follow" you back.  For the purposes of my solution I
+   am assuming a network size to be equal to the number of people you are
+   following plus the number of people following you
+
+According to the instructions, employees have about 40 contacts, and handlers
+have between 30 and 40.  This makes it difficult to identify one from the other
+so my first attempt lumps them together.  There are between 100 and 150
+users who fit in this category depending on how large a net cast (eg. users with
+between 30 and 43 contacts).
+
+Leaders are simple, they have well over 100 contacts.  For this attempt I
+assumed a leader would have a network size of over 150.
+
+Middlemen on the otherhand only have 4 or 5 contacts, but one of those contacts
+must be a leader.  There are nearly 2,000 users with a network size of 4 or 5
+but only about 700 have a network with a potential leader in it.
+
+Lets take a look at what we see now:
+![Potential networks with leaders][potential2]
+
+This is getting better but lets look at some networks that meet the specific
+scenarios above.
+
+#### Scenario 1
+
 
 
 
@@ -82,3 +112,6 @@ Because of this reducing the data in this was was discarded.
 [alldata]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/alldata.png
 [communities]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/communities.png
 [reduced]:https://raw.githubusercontent.com/mkijowski/flitter/master/images/reduced-communities.png
+[potentials1]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/potentials1.png
+[potentials2]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/potentials2.png
+
