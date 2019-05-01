@@ -49,4 +49,35 @@ ways:
    like flitter is probably more relevant)
 
 #### Starting point
-Visualizing all of the data was trivial but also useless.
+Visualizing all of the data was trivial but also useless.  My first results
+looked like this:
+![All data, no clustering][alldata]
+
+Since this was clearly not very useful I then tried implementing some better
+graphing layout strategies like clustering, specifically
+`vtk.vtkAttributeClustering2DLayoutStrategy()` using the data about what city
+each flitter user was in.  This worked but there was still too much data to
+view usefully:
+![People-cities.txt based clustering][communities]
+
+Next I tried reducing the data set byt removing users with few links (< 10).
+![Only showing users with more than 10 followers][reduced]
+
+This approach has 3 problems:
+1. Still too much data
+2. Removes users AND links that user created, which affects other users total
+   followers making the rest of the problem difficult to classify
+3. This also removes middlemen since they typically have between 3 and 5
+   followers.
+
+Because of this reducing the data in this was was discarded.
+
+
+
+
+
+
+[solutions]: https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202009/challenges/MC2%20-%20Social%20Network%20and%20Geospatial/
+[alldata]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/alldata.png
+[communities]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/communities.png
+[reduced]:https://raw.githubusercontent.com/mkijowski/flitter/master/images/reduced-communities.png
