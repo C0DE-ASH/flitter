@@ -64,7 +64,8 @@ Next I tried reducing the data set byt removing users with few links (< 10).
 ![Only showing users with more than 10 followers][reduced]
 
 This approach has 3 problems:
-1. Still too much data
+1. Still too much data (although it reduced the number of edges from 29,000 to
+   about 9,000)
 2. Removes users AND links that user created, which affects other users total
    followers making the rest of the problem difficult to classify
 3. This also removes middlemen since they typically have between 3 and 5

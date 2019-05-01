@@ -37,6 +37,7 @@ def main():
 
     ## Array to store verticies for adding edges
     v = []
+    size = []
 
     """
     ## Housecleaning
@@ -55,6 +56,7 @@ def main():
     ## Create vertex from Flitter_names
     for i in range(0, len(names)):
         v.append(allgraph.AddVertex())
+        size.append(friends[friends.ID2 == i].ID2.size)
         username.InsertNextValue(names.username[i])
         userid.InsertNextValue(names.userid[i])
     allgraph.GetVertexData().AddArray(username)
@@ -62,9 +64,15 @@ def main():
 
     ## Put the vertex data in names for edge lookups
     names['vertex'] = v
+    names['followers'] = size
+    names['city'] = communities.City.tolist()
 
+    employees = names[(names['followers'] >= 35 ) & (names['followers'] <= 45)]
+    handlers = names[(names['followers'] => 30 ) &( names['followers'] <= 40)]
+    middlemen = names[(names['followers'] >= 4 ) & (names['followers'] <= 5)]
+    leaders = names[(names['followers'] >= 150 )]
 
-    #return friends,names,communities
+    return friends,names
 
     ## Add Edges
     for i in range(0, len(friends)):
