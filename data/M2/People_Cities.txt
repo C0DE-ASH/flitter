@@ -1,4 +1,4 @@
-ID	City	
+ID	City
 1	Koul
 2	Kouvnic
 3	Koul
@@ -5999,3 +5999,19 @@ ID	City
 5998	Prounov
 5999	Prounov
 6000	Prounov
+6001	Flovania
+6002	Flovania
+6003	Flovania
+6004	Flovania
+6005	Flovania
+6006	Flovania
+6007	Flovania
+6008	Flovania
+6009	Flovania
+6010	Posana
+6011	Transak
+6012	Trium
+6013	Flovania
+6014	Trium
+6015	Posana
+6016	Transak
