@@ -37,3 +37,16 @@ Fearless Leader, would likely require a presence in a larger city.
 #### The Data
 The data for this project is included in this repository [./data](../master/data/)
 
+The data has been modified slightly from it's original form in the following
+ways:
+1. All data has only one row at the top for names of column data
+   * if the data had more than one extras were removed
+   * if the data had 0 then column identifiers were added
+2. All data now has a null user with uid = 0 added so that indexes match uid for
+   convenience.
+3. Data was added to `./data/M2/Flitter_Names.txt` for each city and country to
+   fix some out of bounds errors (also having state actors on a social platfrom
+   like flitter is probably more relevant)
+
+#### Starting point
+Visualizing all of the data was trivial but also useless.

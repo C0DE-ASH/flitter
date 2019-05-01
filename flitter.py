@@ -19,6 +19,7 @@ def main():
     community_file = "./data/M2/People_Cities.txt"
 
     graph     = vtk.vtkMutableDirectedGraph()
+    allgraph     = vtk.vtkMutableDirectedGraph()
     username  = vtk.vtkStringArray()
     username.SetName("username")
 
@@ -37,39 +38,54 @@ def main():
     ## Array to store verticies for adding edges
     v = []
 
+    """
+    ## Housecleaning
+    uninteresting = friends.ID2.groupby(friends.ID2.tolist()).size()[friends.ID2.groupby(friends.ID2.tolist()).size() < 10].keys()
+    for i in range(0, len(uninteresting)):
+        friends = friends.drop(friends[friends.ID1 == uninteresting[i]].index.tolist())
+        friends = friends.drop(friends[friends.ID2 == uninteresting[i]].index.tolist())
+        names = names.drop(names[names.userid == uninteresting[i]].index.tolist())
+        communities = communities.drop(communities[communities.ID == uninteresting[i]].index.tolist())
+
+    names = names.reset_index()
+    friends = friends.reset_index()
+    communities = communities.reset_index()
+    """
+
     ## Create vertex from Flitter_names
     for i in range(0, len(names)):
-        v.append(graph.AddVertex())
+        v.append(allgraph.AddVertex())
         username.InsertNextValue(names.username[i])
         userid.InsertNextValue(names.userid[i])
-    graph.GetVertexData().AddArray(username)
-    graph.GetVertexData().AddArray(userid)
+    allgraph.GetVertexData().AddArray(username)
+    allgraph.GetVertexData().AddArray(userid)
 
-    ### Ignore the last 12 lines becuase they are just city&country data
-    ### And I don't have vertexes for them yet
-    for i in range(0, len(friends)-12):
-        graph.AddEdge(v[friends.ID1[i]-1],v[friends.ID2[i]-1])
+    ## Put the vertex data in names for edge lookups
+    names['vertex'] = v
+
+
+    #return friends,names,communities
+
+    ## Add Edges
+    for i in range(0, len(friends)):
+        allgraph.AddEdge(v[friends.ID1[i]],v[friends.ID2[i]])
+        #vertex1 = v[names[names.userid == friends.ID1[i]].vertex.tolist()[0]]
+        #vertex2 = v[names[names.userid == friends.ID2[i]].vertex.tolist()[0]]
+        #allgraph.AddEdge(vertex1,vertex2)
 
     for i in range(0,len(communities)):
         community.InsertNextValue(communities.City[i])
-    graph.GetVertexData().AddArray(community)
+    allgraph.GetVertexData().AddArray(community)
 
-    #return graph
 
     ### VTK pipeline stuff
 
-    ## Strategy attempt 2
+    ## Render All users
     strategy = vtk.vtkAttributeClustering2DLayoutStrategy()
     strategy.SetVertexAttribute("community")
-
-    ## Strategy Attempt 1, failed due to not finding community array...
-    #strategy = vtk.vtkCommunity2DLayoutStrategy()
-    #strategy.SetCommunityArrayName("community")
-
-
-    strategy.SetGraph(graph)
+    strategy.SetGraph(allgraph)
     graphLayoutView = vtk.vtkGraphLayoutView()
-    graphLayoutView.AddRepresentationFromInput(graph)
+    graphLayoutView.AddRepresentationFromInput(allgraph)
     graphLayoutView.GetRenderWindow().SetSize(1024,1024)
     graphLayoutView.SetLayoutStrategy(strategy)
     graphLayoutView.ResetCamera()
@@ -82,6 +98,14 @@ def main():
 len(friends[friends.ID1 == 6000 ])
 ## Return the users UID 6000 is following
 friends[friends.ID1 == 6000 ]
+
+get number of followers:
+friends.ID2.groupby(friends.ID2.tolist()).size()
+df = pd.DataFrame(friends.ID2.groupby(friends.ID2.tolist()).size())
+
+
+friends.ID2.groupby(friends.ID2.tolist()).size()[friends.ID2.groupby(friends.ID2.tolist()).size() < 10].keys()
+
 """
 
 if __name__ == '__main__':
