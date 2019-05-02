@@ -78,6 +78,17 @@ def makegraph(table1, friends, clustering):
                 graph.AddEdge(vertex1,vertex2)
     return graph
 
+def update_suspects(potentials,handlers,employees,middlemen,leaders):
+    handlers.loc[:,'criminal']="handler"
+    employees.loc[:,'criminal']="employee"
+    middlemen.loc[:,'criminal']="middlemen"
+    leaders.loc[:,'criminal']="leader"
+    potentials = handlers.append(middlemen)
+    potentials = potentials.append(leaders)
+    potentials = potentials.reset_index()
+    potentials = potentials.drop(columns="index")
+    return potentials
+
 def main():
     user_file      = "./data/M2/Flitter_Names.txt"
     friend_file    = "./data/M2/Links_Table.txt"
@@ -96,17 +107,20 @@ def main():
     names.loc[:,'followers'] = size
     names.loc[:,'city'] = communities.City.tolist()
 
-    allgraph     = vtk.vtkMutableDirectedGraph()
-    allgraph = makegraph(names,friends,"city")
+    #allgraph     = vtk.vtkMutableDirectedGraph()
+    #allgraph = makegraph(names,friends,"city")
 
     ## First round of checks, do the sizes of their networks make sense?
     employees = names[(names['followers'] >= 35  ) & (names['followers'] <= 45)]
     handlers  = names[(names['followers'] >= 30  ) & (names['followers'] <= 40)]
     middlemen = names[(names['followers'] >= 4   ) & (names['followers'] <= 5 )]
-    leaders   = names[(names['followers'] >= 150 )]
+    leaders   = names[(names['followers'] >= 125 )]
 
     middlemen = check(middlemen,leaders,friends,1,"ge")
 
+    potentials = leaders
+    potentials = update_suspects(potentials,handlers,employees,middlemen,leaders)
+    """
     handlers.loc[:,'criminal']="employee_or_handler"
     middlemen.loc[:,'criminal']="middlemen"
     leaders.loc[:,'criminal']="leaders"
@@ -114,13 +128,18 @@ def main():
     potentials = potentials.append(leaders)
     potentials = potentials.reset_index()
     potentials = potentials.drop(columns="index")
+    """
 
-    potentialgraph     = vtk.vtkMutableDirectedGraph()
-    potentialgraph = makegraph(potentials,friends,"criminal")
+    allgraph     = vtk.vtkMutableDirectedGraph()
+    allgraph = makegraph(potentials,friends,"city")
 
     ## Second round of check, do they havethe appropriate links?
-    #employees = check(employees, handlers, friends, 3)
-    #handlers  = check(handlers, handlers, friends, 0) 
+    employees = check(employees, handlers, friends, 3,"eq")
+    handlers  = check(handlers, handlers, friends, 2, "le") 
+
+    potentials = update_suspects(potentials,handlers,employees,middlemen,leaders)
+    potentialgraph     = vtk.vtkMutableDirectedGraph()
+    potentialgraph = makegraph(potentials,friends,"criminal")
 
     ### VTK pipeline stuff
     strategy = vtk.vtkAttributeClustering2DLayoutStrategy()
@@ -131,8 +150,6 @@ def main():
     graphLayoutView.GetRenderWindow().SetSize(1024,1024)
     graphLayoutView.SetLayoutStrategy(strategy)
     graphLayoutView.ResetCamera()
-    graphLayoutView.Render()
-    graphLayoutView.GetInteractor().Start()
 
 
     ## Render Just potential employees, handlers, middlemen, and leaders
@@ -144,6 +161,19 @@ def main():
     graphLayoutView2.GetRenderWindow().SetSize(1024,1024)
     graphLayoutView2.SetLayoutStrategy(strategy2)
     graphLayoutView2.ResetCamera()
+
+    ### implementing kayleigh's fancy linking code
+    annotationlink = vtk.vtkAnnotationLink()
+    graphLayoutView.GetRepresentation(0).SetAnnotationLink(annotationlink)
+    graphLayoutView2.GetRepresentation(0).SetAnnotationLink(annotationlink)
+
+    updater = vtk.vtkViewUpdater()
+    updater.AddAnnotationLink(annotationlink)
+    updater.AddView(graphLayoutView)
+    updater.AddView(graphLayoutView2)
+
+    graphLayoutView.Render()
+    graphLayoutView.GetInteractor().Start()
     graphLayoutView2.Render()
     graphLayoutView2.GetInteractor().Start()
 
