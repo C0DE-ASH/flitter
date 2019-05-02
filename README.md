@@ -101,7 +101,7 @@ Lets take a look at what we see now:
 This is getting better but lets look at some networks that meet the specific
 scenarios above.
 
-#### Scenario 1
+#### Solution
 In scenario 1 we make the following assumptions:
 1. Handlers have between 28 and 42 contacts in their network
 2. Handlers can talk to no more than 2 other handlers (even though they are not
@@ -123,19 +123,33 @@ commit.](https://raw.githubusercontent.com/mkijowski/flitter/52779b33d14c42805c6
 
 When highlighting the leaders and zooming in on the graph clustered by city we
 can tell that the leaders are predominantly in larger cities.  For this scenario
-I only obtained 2 potential criminal employees:
+I only obtained 3 potential criminal employees:
 
 1. @corbett
 2. @bailey
+3. @marrevee
 
-Since I am running low on time I will switch to the second scenario but the next
-steps for this scenario would be to render only the networks associated with
-these two emplyees, meaning I would remove all handlers that are not responsible
+The next steps are to render only the networks associated with
+these three emplyees, meaning I would remove all handlers that are not responsible
 for them and try to identify the remaining handler's middleman Boris.
 
 I would also eliminate any leaders that would not make up one of the two
 networks, and I would probably sanity check myself that the remaining leaders were in
 large cities.
+
+Doing so produces the following:
+![Solution with leaders highlighted][solution]
+
+You can clearly see the makeup of this criminal network.  My sanity check proves
+correct and all but one of the potential fearless leaders are in large cities.
+
+Additional work needed:
+* properly color and size the final network
+* as make sure all labels are a useful size
+* panning function for render windows
+* selecting users should possibly highlight their network (could be recursive
+  all the way up to the leader)
+
 
 
 
@@ -147,3 +161,4 @@ large cities.
 [potentials1]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/potentials1.png
 [potentials2]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/potentials2.png
 [scenario1]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/scenario1.png
+[solution]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/solution.png 

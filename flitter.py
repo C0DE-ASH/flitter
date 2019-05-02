@@ -78,7 +78,55 @@ def makegraph(table1, friends, clustering):
                 graph.AddEdge(vertex1,vertex2)
     return graph
 
-## Update out list of potential suspects
+### Like makegraph but solution requires a criminal network
+def makesolution(table1, friends, clustering):
+    graph = vtk.vtkMutableDirectedGraph()
+    username  = vtk.vtkStringArray()
+    username.SetName("username")
+    userid    = vtk.vtkIntArray()
+    userid.SetName("uid")
+    classifier = vtk.vtkStringArray()
+    classifier.SetName(clustering)
+    v = []
+
+    ## Add vertices to graph
+    for i in range(0, len(table1)):
+        v.append(graph.AddVertex())
+        username.InsertNextValue(table1.loc[i].username)
+        userid.InsertNextValue(table1.loc[i].userid)
+        if clustering == "city":
+            classifier.InsertNextValue(table1.loc[i].city)
+        else:
+            classifier.InsertNextValue(table1.loc[i].criminal)
+    graph.GetVertexData().AddArray(username)
+    graph.GetVertexData().AddArray(userid)
+    graph.GetVertexData().AddArray(classifier)
+    table1['vertex'] = v
+
+    ## Add edges to graph, check to make sure the edge belongs in this graph
+    ## (check that both vertices are in table1)
+    for i in range(0, len(table1)):
+        vertex1 = v[i]
+        if table1.loc[i].criminal == "employee":
+            connect1 = "handler"
+            connect2 = "employee"
+        elif table1.loc[i].criminal == "handler":
+            connect1 = "middlemen"
+            connect2 = "employee"
+        elif table1.loc[i].criminal == "middlemen":
+            connect1 = "leader"
+            connect2 = "handler"
+        elif table1.loc[i].criminal == "leader":
+            connect1 = "middlemen"
+            connect2 = "leader"
+        for j in friends[friends.ID1 == table1.loc[i].userid].ID2.tolist():
+            if table1[table1.userid == j].userid.size == 1:
+                if table1[table1.userid == j].criminal.tolist()[0] == connect1 or table1[table1.userid == j].criminal.tolist()[0] == connect2:
+                    vertex2 = v[table1[table1.userid == j].vertex.tolist()[0]]
+                    graph.AddEdge(vertex1,vertex2)
+    return graph
+
+## Update our list of potential suspects
 def update_suspects(potentials,handlers,employees,middlemen,leaders):
     employees.loc[:,'criminal']="employee"
     handlers.loc[:,'criminal']="handler"
@@ -109,17 +157,11 @@ def main():
     names.loc[:,'followers'] = size
     names.loc[:,'city'] = communities.City.tolist()
 
-    #allgraph     = vtk.vtkMutableDirectedGraph()
-    #allgraph = makegraph(names,friends,"city")
-
     ## First round of checks, do the sizes of their networks make sense?
     employees = names[(names['followers'] >= 37  ) & (names['followers'] <= 43)]
     handlers  = names[(names['followers'] >= 28  ) & (names['followers'] <= 42)]
     middlemen = names[(names['followers'] >= 4   ) & (names['followers'] <= 5 )]
     leaders   = names[(names['followers'] >= 125 )]
-
-    #return names,friends,employees,handlers,middlemen,leaders
-
     middlemen = check(middlemen,leaders,friends,1,"ge")
 
     potentials = leaders
@@ -132,12 +174,16 @@ def main():
     handlers  = check(handlers, handlers, friends, 2, "le")
     employees = check(employees, handlers, friends, 3,"eq")
     middlemen = check(middlemen,handlers,friends,2,"ge")
-    
+
+    ## Finally we remove all extras based on our employees
+    handlers = check(handlers,employees,friends,1,"eq")
+    middlemen = check(middlemen,handlers,friends,1,"ge")
+    leaders = check(leaders,middlemen,friends,1,"ge")
+
     potentials     = update_suspects(potentials,handlers,employees,middlemen,leaders)
     potentialgraph = vtk.vtkMutableDirectedGraph()
-    potentialgraph = makegraph(potentials,friends,"criminal")
 
-    #return friends,names,potentials,employees,handlers,middlemen,leaders
+    potentialgraph = makesolution(potentials,friends,"criminal")
 
     ### VTK pipeline stuff
     strategy = vtk.vtkAttributeClustering2DLayoutStrategy()
