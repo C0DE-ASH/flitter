@@ -1,5 +1,11 @@
 ### Flitter project
 
+The most recent commit can be viewed by cloning this repository and running the
+following (in my container or somewhere you have vtk, numpy, and pandas):
+```
+python ./flitter.py
+```
+
 #### The Scenario
 We believe an employee communicated with his/her handler(s) (a contact from the
 criminal network) through Flitter, however we do not know the Flitter name of 
@@ -140,13 +146,20 @@ large cities.
 Doing so produces the following:
 ![Solution with leaders highlighted][solution]
 
-You can clearly see the makeup of this criminal network.
+You can clearly see the makeup of this criminal network.  On the left you have
+the potential networks that fulfill our scenarios clustered by criminal class
+(employee at the bottom, which are connected to handlers, and then to middlemen, 
+and finally to leaders).  On the right you have a view of all potential criminal
+candidates clusterd by city.
+
 1. My sanity check proves correct and all but one of the potential fearless 
    leaders are in large cities.
-2. The three potential criminal employees are on the bottom
-3. The only links shown are relevent, employees to handlers, handlers to
+2. On the left, the only links shown are internally relevent, employees to handlers, handlers to
    middlemen, and middelmen to leaders (although leaders do have links to one
    another...)
+3. On the right we have many more vertices and edges to display a proportionally
+   larger potential criminal network that might show some other mischief.  This
+   graph is clustered by the city each user is in
 
 Additional work needed:
 * properly color and size the final network
