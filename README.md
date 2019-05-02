@@ -140,8 +140,13 @@ large cities.
 Doing so produces the following:
 ![Solution with leaders highlighted][solution]
 
-You can clearly see the makeup of this criminal network.  My sanity check proves
-correct and all but one of the potential fearless leaders are in large cities.
+You can clearly see the makeup of this criminal network.
+1. My sanity check proves correct and all but one of the potential fearless 
+   leaders are in large cities.
+2. The three potential criminal employees are on the bottom
+3. The only links shown are relevent, employees to handlers, handlers to
+   middlemen, and middelmen to leaders (although leaders do have links to one
+   another...)
 
 Additional work needed:
 * properly color and size the final network
@@ -149,12 +154,10 @@ Additional work needed:
 * panning function for render windows
 * selecting users should possibly highlight their network (could be recursive
   all the way up to the leader)
+* remove internal links from leaders
 
 
 
-
-
-[solutions]: https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202009/challenges/MC2%20-%20Social%20Network%20and%20Geospatial/
 [alldata]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/alldata.png
 [communities]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/communities.png
 [reduced]:https://raw.githubusercontent.com/mkijowski/flitter/master/images/reduced-communities.png
