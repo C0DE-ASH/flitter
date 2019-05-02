@@ -14,9 +14,10 @@ import vtk
 import numpy as np
 
 
-### Check to see if table1 has a number of links to table2 equal to count
+### Check to see if table1 has a number of links to table2 and performs 
+### a comparator operation op against the provided integer count
 ### all tables must be pandas dataframes and contain a userid column
-### drops all members of table1 that do not meet the count criteria and
+### drops all members of table1 that do not meet the count/op criteria and
 ### returns table1
 def check(table1, table2, friends, count, op):
     ## check middlemen
@@ -40,44 +41,63 @@ def check(table1, table2, friends, count, op):
             if followtheleader < count: table1 = table1.drop(i)
     return table1
 
-def main():
-    user_file      = "./data/M2/Flitter_Names.txt"
-    friend_file    = "./data/M2/Links_Table.txt"
-    community_file = "./data/M2/People_Cities.txt"
-
-    potentialgraph     = vtk.vtkMutableDirectedGraph()
-    allgraph     = vtk.vtkMutableDirectedGraph()
+## Builds a graph from a list of vertices (table1) and a list of edges (friends)
+## also takes a specification of clustering for the name of the array we will 
+## be clustering by.
+def makegraph(table1, friends, clustering):
+    graph = vtk.vtkMutableDirectedGraph()
     username  = vtk.vtkStringArray()
     username.SetName("username")
     userid    = vtk.vtkIntArray()
     userid.SetName("uid")
+    classifier = vtk.vtkStringArray()
+    classifier.SetName(clustering)
+    v = []
 
-    community = vtk.vtkStringArray()
-    community.SetName("community")
+    ## Add vertices to graph
+    for i in range(0, len(table1)):
+        v.append(graph.AddVertex())
+        username.InsertNextValue(table1.loc[i].username)
+        userid.InsertNextValue(table1.loc[i].userid)
+        if clustering == "city":
+            classifier.InsertNextValue(table1.loc[i].city)
+        else:
+            classifier.InsertNextValue(table1.loc[i].criminal)
+    graph.GetVertexData().AddArray(username)
+    graph.GetVertexData().AddArray(userid)
+    graph.GetVertexData().AddArray(classifier)
+    table1['vertex'] = v
+
+    ## Add edges to graph, check to make sure the edge belongs in this graph
+    ## (check that both vertices are in table1)
+    for i in range(0, len(table1)):
+        vertex1 = v[i]
+        for j in friends[friends.ID1 == table1.loc[i].userid].ID2.tolist():
+            if table1[table1.userid == j].userid.size == 1:
+                vertex2 = v[table1[table1.userid == j].vertex.tolist()[0]]
+                graph.AddEdge(vertex1,vertex2)
+    return graph
+
+def main():
+    user_file      = "./data/M2/Flitter_Names.txt"
+    friend_file    = "./data/M2/Links_Table.txt"
+    community_file = "./data/M2/People_Cities.txt"
 
     ## Read user_file and friend_file with numpy
     names       = pd.read_csv( user_file, delimiter = '\t')
     friends     = pd.read_csv( friend_file, delimiter = '\t')
     communities = pd.read_csv( community_file, delimiter = '\t')
 
-    ## Array to store verticies for adding edges
-    v = []
+    ## Add the size of each users network to the pandas dataframe
+    ## and the city of each user to the pandas dataframe
     size = []
-
-    ## Create vertex from Flitter_names
     for i in range(0, len(names)):
-        v.append(allgraph.AddVertex())
         size.append(friends[friends.ID2 == i].ID2.size + friends[friends.ID1 == i].ID1.size)
-        username.InsertNextValue(names.username[i])
-        userid.InsertNextValue(names.userid[i])
-    allgraph.GetVertexData().AddArray(username)
-    allgraph.GetVertexData().AddArray(userid)
-
-    ## Put the vertex data in names for edge lookups
-    names.loc[:,'vertex'] = v
     names.loc[:,'followers'] = size
     names.loc[:,'city'] = communities.City.tolist()
 
+    allgraph     = vtk.vtkMutableDirectedGraph()
+    allgraph = makegraph(names,friends,"city")
 
     ## First round of checks, do the sizes of their networks make sense?
     employees = names[(names['followers'] >= 35  ) & (names['followers'] <= 45)]
@@ -87,68 +107,24 @@ def main():
 
     middlemen = check(middlemen,leaders,friends,1,"ge")
 
-    vpot = []
-    potusername  = vtk.vtkStringArray()
-    potusername.SetName("username")
-    potuserid    = vtk.vtkIntArray()
-    potuserid.SetName("uid")
-    classifier = vtk.vtkStringArray()
-    classifier.SetName("classifier")
-    handlers.loc[:,'classifier']="employee_or_handler"
-    middlemen.loc[:,'classifier']="middlemen"
-    leaders.loc[:,'classifier']="leaders"
+    handlers.loc[:,'criminal']="employee_or_handler"
+    middlemen.loc[:,'criminal']="middlemen"
+    leaders.loc[:,'criminal']="leaders"
     potentials = handlers.append(middlemen)
     potentials = potentials.append(leaders)
-    potentials = potentials.drop(columns="vertex")
     potentials = potentials.reset_index()
     potentials = potentials.drop(columns="index")
 
-    ## Test return case
-    #return friends,names,potentials ,employees,handlers,middlemen,leaders
-
-
-    for i in potentials.userid.tolist():
-        vpot.append(potentialgraph.AddVertex())
-        potusername.InsertNextValue(potentials[potentials.userid == i].username.tolist()[0])
-        potuserid.InsertNextValue(i)
-        classifier.InsertNextValue(potentials[potentials.userid == i].classifier.tolist()[0])
-    potentialgraph.GetVertexData().AddArray(potusername)
-    potentialgraph.GetVertexData().AddArray(classifier)
-    potentialgraph.GetVertexData().AddArray(userid)
-    potentials['vertex'] = vpot
-
-
-    #return names, friends, potentials, potentialgraph,vpot
-    for i in range(0, len(potentials)):
-        vertex1 = vpot[i]
-        for j in friends[friends.ID1 == potentials.loc[i].userid].ID2.tolist():
-            if potentials[potentials.userid == j].userid.size == 1:
-                vertex2 = vpot[potentials[potentials.userid == j].vertex.tolist()[0]]
-                potentialgraph.AddEdge(vertex1,vertex2)
+    potentialgraph     = vtk.vtkMutableDirectedGraph()
+    potentialgraph = makegraph(potentials,friends,"criminal")
 
     ## Second round of check, do they havethe appropriate links?
     #employees = check(employees, handlers, friends, 3)
     #handlers  = check(handlers, handlers, friends, 0) 
 
-    #return friends,names
-
-    ## Add Edges
-    for i in range(0, len(friends)):
-        allgraph.AddEdge(v[friends.ID1[i]],v[friends.ID2[i]])
-        #vertex1 = v[names[names.userid == friends.ID1[i]].vertex.tolist()[0]]
-        #vertex2 = v[names[names.userid == friends.ID2[i]].vertex.tolist()[0]]
-        #allgraph.AddEdge(vertex1,vertex2)
-
-    for i in range(0,len(communities)):
-        community.InsertNextValue(communities.City[i])
-    allgraph.GetVertexData().AddArray(community)
-
-
     ### VTK pipeline stuff
-
-    ## Render All users
     strategy = vtk.vtkAttributeClustering2DLayoutStrategy()
-    strategy.SetVertexAttribute("community")
+    strategy.SetVertexAttribute("city")
     strategy.SetGraph(allgraph)
     graphLayoutView = vtk.vtkGraphLayoutView()
     graphLayoutView.AddRepresentationFromInput(allgraph)
@@ -158,9 +134,10 @@ def main():
     graphLayoutView.Render()
     graphLayoutView.GetInteractor().Start()
 
+
     ## Render Just potential employees, handlers, middlemen, and leaders
     strategy2 = vtk.vtkAttributeClustering2DLayoutStrategy()
-    strategy2.SetVertexAttribute("classifier")
+    strategy2.SetVertexAttribute("criminal")
     strategy2.SetGraph(potentialgraph)
     graphLayoutView2 = vtk.vtkGraphLayoutView()
     graphLayoutView2.AddRepresentationFromInput(potentialgraph)
@@ -169,6 +146,7 @@ def main():
     graphLayoutView2.ResetCamera()
     graphLayoutView2.Render()
     graphLayoutView2.GetInteractor().Start()
+
 
 """
 ## Some useful pandas examples:
@@ -180,11 +158,8 @@ friends[friends.ID1 == 6000 ]
 get number of followers:
 friends.ID2.groupby(friends.ID2.tolist()).size()
 df = pd.DataFrame(friends.ID2.groupby(friends.ID2.tolist()).size())
-
-
 friends.ID2.groupby(friends.ID2.tolist()).size()[friends.ID2.groupby(friends.ID2.tolist()).size() < 10].keys()
-
 """
-
 if __name__ == '__main__':
     main()
+
