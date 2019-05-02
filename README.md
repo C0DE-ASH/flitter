@@ -96,14 +96,46 @@ must be a leader.  There are nearly 2,000 users with a network size of 4 or 5
 but only about 700 have a network with a potential leader in it.
 
 Lets take a look at what we see now:
-![Potential networks with leaders][potential2]
+![Potential networks with leaders][potentials2]
 
 This is getting better but lets look at some networks that meet the specific
 scenarios above.
 
 #### Scenario 1
+In scenario 1 we make the following assumptions:
+1. Handlers have between 28 and 42 contacts in their network
+2. Handlers can talk to no more than 2 other handlers (even though they are not
+   allowed by their middlemen)
+3. Middlemen have between 4 and 5 contacts in their network
+4. Middlemen must be in contact with a potential fearless leader
+5. Middlemen must be in contact with 2 or more handlers
+6. Fearless leaders must have networks of over 125 contacts
+7. Employees must have between 37 and 43 people in their network
+8. Employees must be in contact with 3 handlers
 
+In addition to this I have established a link between two graphs to visualize
+clusters grouped by city and by criminal type (employes, handlers, leaders, or
+middlemen).
+![Scenario 1 network with leaders highlighted][scenario1]
 
+This scenario was solved with [this `flitter.py`
+commit.](https://raw.githubusercontent.com/mkijowski/flitter/52779b33d14c42805c6bb52899751646d5aa5214/flitter.py)
+
+When highlighting the leaders and zooming in on the graph clustered by city we
+can tell that the leaders are predominantly in larger cities.  For this scenario
+I only obtained 2 potential criminal employees:
+
+1. @corbett
+2. @bailey
+
+Since I am running low on time I will switch to the second scenario but the next
+steps for this scenario would be to render only the networks associated with
+these two emplyees, meaning I would remove all handlers that are not responsible
+for them and try to identify the remaining handler's middleman Boris.
+
+I would also eliminate any leaders that would not make up one of the two
+networks, and I would probably sanity check myself that the remaining leaders were in
+large cities.
 
 
 
@@ -114,4 +146,4 @@ scenarios above.
 [reduced]:https://raw.githubusercontent.com/mkijowski/flitter/master/images/reduced-communities.png
 [potentials1]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/potentials1.png
 [potentials2]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/potentials2.png
-
+[scenario1]: https://raw.githubusercontent.com/mkijowski/flitter/master/images/scenario1.png
